@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="./reset.css"/>
+    <style>
+        canvas{
+            background: #1e1842;
+background: linear-gradient(180deg, rgba(30, 24, 66, 1) 51%, rgba(69, 67, 115, 1) 85%, rgba(113, 114, 170, 1) 96%, rgba(158, 165, 219, 1) 100%);
+        }
+    </style>
+</head>
+<body>
+    <canvas>
+        <img src="./image/magic2.jpg"/>
+    </canvas>
+    <script>
+        const canvas = document.querySelector('canvas')
+        const ctx = canvas.getContext('2d')
+
+        canvas.width = window.innerWidth
+        canvas.height = window.innerHeight
+
+        let circles = []
+
+        for(let i=0;i<=15;i++){
+            circles.push({
+                x : Math.random()*canvas.width,
+                y : Math.random()*canvas.height,
+                r : 60 + Math.random()*100,
+                speedX : -1 + Math.random()*8,
+                speedY : -1 + Math.random()*8,
+                color : `hsla(${90+ Math.random()*230}, 100%, 70%, 0.9)`
+            })
+        }
+        function ani(){
+            ctx.clearRect(0,0,canvas.width,canvas.height)
+            for(let i=0;i<circles.length;i++){
+                let circle = circles[i]
+                circle.x += circle.speedX
+                circle.y += circle.speedY
+
+                if(circle.x + circle.r > canvas.width || circle.x - circle.r <0){
+                    circle.speedX = -circle.speedX
+                }
+                if(circle.y + circle.r > canvas.height || circle.y - circle.r <0){
+                    circle.speedY = -circle.speedY
+                }
+                
+
+                ctx.shadowBlur=20 //그림자 만들기
+                ctx.shadowOffsetX =10
+                ctx.shadowOffsetY =10
+                ctx.shadowColor=('rgba(0,0,0,0.3)')
+
+
+                ctx.beginPath()
+                // ctx.arc(circle.x,circle.y,circle.r,0,Math.PI*2)
+                // ctx.fillStyle = circle.color
+                // ctx.fill()
+                let raG = ctx.createRadialGradient(circle.x - (circle.r * 0.4),circle.y - (circle.r * 0.4),circle.r* 0.1, circle.x,circle.y,circle.r)
+                raG.addColorStop(0,'white')
+                raG.addColorStop(0.1,circle.color)
+                raG.addColorStop(0.3,circle.color)
+                raG.addColorStop(1,'rgba(255,255,255,0.9)')
+
+                ctx.fillStyle = raG
+                ctx.arc(circle.x,circle.y,circle.r,0,Math.PI*2)
+                ctx.fill()
+                
+
+                ctx.shadowColor = 'transparent';
+                //반사광
+                ctx.beginPath()
+                let raG2 = ctx.createRadialGradient(circle.x- (circle.r * -0.5),circle.y - (circle.r * -0.3),circle.r*0.3, circle.x- (circle.r * -0.2),circle.y - (circle.r * -0.2),circle.r*0.7)
+                raG2.addColorStop(0,'rgba(255,255,255,0.7)')
+                raG2.addColorStop(1,'rgba(255,255,255, 0)')
+                ctx.fillStyle = raG2
+                ctx.arc(circle.x, circle.y, circle.r, 0, Math.PI * 2)
+                ctx.fill()
+                
+
+                
+            }
+            requestAnimationFrame(ani)
+        }
+        ani()
+
+        window.addEventListener('resize',function(){
+            canvas.width = window.innerWidth
+            canvas.height = window.innerHeight
+        })
+    </script>
+</body>
+</html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body{
+           background: #4a4a4a;
+background: radial-gradient(circle,rgba(74, 74, 74, 1) 0%, rgba(33, 33, 33, 1) 65%, rgba(0, 0, 0, 1) 100%);
+        }
+        #gameBox{
+            position:relative; height: 100vh;
+            display: flex; justify-content: center; align-items: center;
+        }
+        canvas{
+            border: 2px solid black; background-color: rgb(255, 255, 255);
+            box-shadow: inset 5px 5px 20px rgba(0,0,0,0.5);
+            border-radius: 30px;
+        }
+        #restartBtn{
+            position: absolute; left: 50%;top: 55%;
+            transform: translateX(-50%); padding: 10px 40px;
+            background-color: #ffffff; color: rgb(0, 0, 0); 
+            box-shadow: 5px 5px 10px rgba(0,0,0,0.5);
+            font-size: 30px; text-align: center;
+            cursor:  pointer; border: none; border-radius: 50px;
+            display: none;
+        }
+        #startBtn{
+            position: absolute; left: 50%;top: 50%;
+            transform: translate(-50%,-50%); padding: 10px 70px;
+            background-color: #181818; color: rgb(255, 255, 255); 
+            box-shadow: 5px 5px 10px rgba(0,0,0,0.5);
+            font-size: 70px; text-align: center;
+            cursor:  pointer; border: none; border-radius: 50px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameBox">
+        <canvas width="1000" height="800"></canvas>
+        <button id="restartBtn">Restart</button>
+        <button id="startBtn">Start</button>
+    </div>
+    <script>
+        const canvas = document.querySelector('canvas')
+        const restartBtn = document.querySelector('#restartBtn')
+        const startBtn = document.querySelector('#startBtn')
+        const ctx = canvas.getContext('2d')
+        
+        let ballX
+        let ballY
+        let ballR = 10
+        let ballSpeedX
+        let ballSpeedY
+
+        let barX
+        let barY = canvas.height - 40
+        let barW = 100
+        let barH = 10
+
+        let bricks = []
+        let bricksRow = 6
+        let bricksCol = 8
+        let bricksW = 100
+        let bricksH = 35
+        let bricksGap = 10
+
+        let gameOver
+        let aniId
+
+        function startGame(){
+            ballX = canvas.width/2
+            ballY = canvas.height - 60
+            ballSpeedX = 5
+            ballSpeedY = 6
+
+            barX = canvas.width / 2- barW/2
+
+            for(let row=0; row<bricksRow;row++){
+                for(let col=0;col<bricksCol;col++){
+                    bricks.push({
+                        x : 65 + col * (bricksW + bricksGap),
+                        y : 50 + row * (bricksH + bricksGap),
+                        show : true,
+                        color : `hsl(${Math.random()*260},100%,80%)`
+                    })
+                }
+            }
+            gameOver = false
+            restartBtn.style.display='none'
+
+            animate()
+        }
+        function draw(){
+            ctx.clearRect(0,0,canvas.width,canvas.height)
+
+            ctx.beginPath()
+            ctx.fillStyle = 'black'
+            ctx.arc(ballX,ballY,ballR,0,Math.PI*2)
+            ctx.fill()
+
+            ctx.beginPath()
+            ctx.fillStyle = 'black'
+            ctx.fillRect(barX,barY,barW,barH)
+
+            for(let i=0;i<bricks.length;i++){
+                if(bricks[i].show){
+                    ctx.fillStyle = bricks[i].color
+                    ctx.fillRect(bricks[i].x,bricks[i].y,bricksW,bricksH)
+                }
+            }
+        }
+        function endGame(){
+            gameOver = true
+            cancelAnimationFrame(aniId)
+
+            ctx.fillStyle = 'rgba(0,0,0,0.7)'
+            ctx.fillRect(0,0,canvas.width,canvas.height)
+
+            ctx.fillStyle = 'white'
+            ctx.font = 'bold 70px sans-serif'
+            ctx.textAlign = 'center'
+            ctx.fillText('GAME OVER', canvas.width/2,canvas.height/2)
+
+            restartBtn.style.display = 'block'
+        }
+
+        restartBtn.addEventListener('click',function(){
+            startGame()
+        })
+        startBtn.addEventListener('click',function(){
+            startGame()
+            startBtn.style.display = 'none'
+        })
+
+        function move(){
+            ballX += ballSpeedX
+            ballY += ballSpeedY
+
+            if(ballX+ballR > canvas.width || ballX - ballR < 0){
+                ballSpeedX = -ballSpeedX
+            }
+            if(ballY-ballR < 0){
+                ballSpeedY = -ballSpeedY
+            }
+            if(ballY+ballR > barY &&
+                ballX > barX &&
+                ballX < barW+barX){
+                    ballSpeedY = -ballSpeedY
+                }
+            for(let i=0;i<bricks.length;i++){
+                let b = bricks[i]
+                if(b.show &&
+                    ballX >= b.x &&
+                    ballX <= b.x+bricksW &&
+                    ballY+ballR >= b.y &&
+                    ballY - ballR <= b.y + bricksH){
+                        b.show = false
+                        ballSpeedY = -ballSpeedY
+                        break;
+                }
+            }
+            if(ballY+ballR>canvas.height){
+                endGame()
+            }
+        }
+        function animate(){
+            if(gameOver) return
+            draw()
+            move()
+
+            aniId = requestAnimationFrame(animate)
+        }
+        canvas.addEventListener('mousemove',function(e){
+            let rect = canvas.getBoundingClientRect()
+            let mouseX = e.clientX - rect.left
+            barX = mouseX - barW/2
+            if(barX<0){
+                barX=0
+            }
+            if(barX+barW>canvas.width){
+                barX = canvas.width - barW
+            }
+        })
+        
+    </script>
+</body>
+</html>
